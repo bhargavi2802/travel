@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoRoute - Green Navigation 🌿</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #4caf50;
+            --background-light: #f4f7f6;
+            --text-dark: #333;
+            --card-background: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --border-color: #eee;
+        }
+
+        body.dark-mode {
+            --background-light: #212121;
+            --text-dark: #e0e0e0;
+            --card-background: #2c2c2c;
+            --shadow-color: rgba(255, 255, 255, 0.05);
+            --border-color: #444;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.9;
+        }
+
+        main {
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--card-background);
+            border-radius: 16px;
+            box-shadow: 0 8px 20px var(--shadow-color);
+            overflow: hidden;
+        }
+
+        #map-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #a8e063, #56ab2f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        #controls {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #route-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+        }
+
+        button[type="submit"] {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        
+        #loading-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            margin-top: 1rem;
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+
+        #loading-bar {
+            height: 100%;
+            width: 0;
+            background-color: var(--secondary-color);
+            transition: width 0.3s linear;
+        }
+
+        #route-details {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        #results {
+            padding-top: 1rem;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .eco-score-card {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 10px var(--shadow-color);
+        }
+
+        .eco-score-card h3 {
+            margin: 0 0 0.5rem;
+            font-size: 1.2em;
+        }
+
+        .eco-score-card p {
+            margin: 0;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        #dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: background 0.3s ease, transform 0.2s ease;
+            z-index: 1000;
+        }
+        
+        #dark-mode-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1rem;
+            color: #777;
+        }
+    </style>
+</head>
+<body class="light-mode">
+
+    <header>
+        <h1>EcoRoute 🌿</h1>
+        <p>Your journey, but greener.</p>
+    </header>
+
+    <main>
+        <div id="app-container">
+            <div id="map-placeholder">
+                Map will be rendered here.
+            </div>
+
+            <div id="controls">
+                <form id="route-form">
+                    <div class="input-group">
+                        <label for="start-point">Start Point</label>
+                        <input type="text" id="start-point" placeholder="e.g., Your Location" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="end-point">End Point</label>
+                        <input type="text" id="end-point" placeholder="e.g., Destination" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="vehicle-type">Vehicle Type</label>
+                        <select id="vehicle-type">
+                            <option value="gas">Gasoline/Diesel Car</option>
+                            <option value="ev">Electric Vehicle (EV)</option>
+                            <option value="bike">Bicycle</option>
+                            <option value="walk">Walking</option>
+                        </select>
+                    </div>
+                    <button type="submit">Find EcoRoute</button>
+                </form>
+                
+                <div id="loading-bar-container">
+                    <div id="loading-bar"></div>
+                </div>
+            </div>
+
+            <div id="route-details">
+                <h2>Route Details</h2>
+                <div id="results">
+                    <p>Enter your start and end points to find the greenest route.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <button id="dark-mode-toggle">🌙</button>
+
+    <footer>
+        <p>&copy; 2024 EcoRoute. Built for a Greener Planet.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const routeForm = document.getElementById('route-form');
+            const resultsDiv = document.getElementById('results');
+            const loadingBarContainer = document.getElementById('loading-bar-container');
+            const loadingBar = document.getElementById('loading-bar');
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const body = document.body;
+
+            // Dark Mode Functionality
+            darkModeToggle.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                if (body.classList.contains('dark-mode')) {
+                    darkModeToggle.textContent = '☀️';
+                } else {
+                    darkModeToggle.textContent = '🌙';
+                }
+            });
+
+            // Form Submission and Dynamic Content
+            routeForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                // Get user inputs
+                const startPoint = document.getElementById('start-point').value;
+                const endPoint = document.getElementById('end-point').value;
+                const vehicleType = document.getElementById('vehicle-type').value;
+
+                // Simulate loading process
+                loadingBarContainer.style.display = 'block';
+                loadingBar.style.width = '0';
+
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress <= 100) {
+                        loadingBar.style.width = `${progress}%`;
+                    } else {
+                        clearInterval(interval);
+                        // Hide loading bar
+                        loadingBarContainer.style.display = 'none';
+
+                        // Calculate creative, fake results
+                        const randomDistance = (Math.random() * 20 + 5).toFixed(1); // 5 to 25 km
+                        const randomTime = Math.floor(Math.random() * 45) + 15; // 15 to 60 mins
+
+                        let carbonSaved = 0;
+                        let ecoScore = 0;
+
+                        // Logic for calculating a "creative" Eco-Score and Carbon Savings
+                        if (vehicleType === 'gas') {
+                            carbonSaved = (randomDistance * 0.18).toFixed(2); // Avg. 180g CO2/km
+                            ecoScore = 65; // A decent, but not perfect score
+                        } else if (vehicleType === 'ev') {
+                            carbonSaved = (randomDistance * 0.1).toFixed(2); // EV's have some emissions from electricity generation
+                            ecoScore = 85;
+                        } else if (vehicleType === 'bike') {
+                            carbonSaved = (randomDistance * 0.22).toFixed(2); // More than gas, as it's a huge reduction
+                            ecoScore = 98;
+                        } else if (vehicleType === 'walk') {
+                            carbonSaved = (randomDistance * 0.25).toFixed(2); // Most eco-friendly
+                            ecoScore = 100;
+                        }
+
+                        // Display the creative results
+                        resultsDiv.innerHTML = `
+                            <p><strong>Route:</strong> ${startPoint} to ${endPoint}</p>
+                            <p><strong>Distance:</strong> ${randomDistance} km</p>
+                            <p><strong>Estimated Time:</strong> ${randomTime} minutes</p>
+                            <div class="eco-score-card">
+                                <h3>Eco-Score</h3>
+                                <p>${ecoScore}/100</p>
+                            </div>
+                            <div class="eco-score-card" style="background-color: #3b5998; margin-top: 10px;">
+                                <h3>Projected Carbon Saved</h3>
+                                <p>${carbonSaved} kg CO₂</p>
+                            </div>
+                            <p style="margin-top: 15px; font-size: 0.9em;">(This is a simulated result for demonstration purposes)</p>
+                        `;
+                    }
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>
